@@ -49,6 +49,7 @@ def parsed_url(url):
     if url[:7] == 'http://':
         u = url.split('://')[1]
     elif url[:8] == 'https://':
+        protocol = 'https'
         u = url.split('://')[1]
     else:
         u = url
@@ -59,7 +60,7 @@ def parsed_url(url):
         host = u
         path = '/'
     else:  # g.cn/hello
-        host = u[:1]
+        host = u[:i]
         path = u[i:]
 
     # 检查端口
@@ -77,6 +78,7 @@ def parsed_url(url):
 
     return protocol, host, port, path
 
+
 # 5
 # 把向服务器发送 HTTP 请求并且获得数据这个过程封装成函数
 # 定义如下
@@ -86,6 +88,11 @@ def parsed_response(r):
     status_code = h[0].split()[1]
     status_code = int(status_code)
 
+    headers = {}
+    for line in h[1:]:
+        k, v = line.split(': ')
+        headers[k] = v
+    return status_code, headers, body
 
 def socket_by_protocol(protocol):
     '''根据一个协议返回一个socket实例'''
@@ -128,6 +135,7 @@ def get(url):
     r = response.decode(encoding)
 
     status_code, headers, body = parsed_response(r)
+
     if status_code == 301:
         url = headers['Location']
         return get(url)
@@ -141,6 +149,7 @@ def main():
     status_code, headers, body = get(url)
     print(status_code, headers, body)
 
+
 def test_parsed_url():
     http = 'http'
     https = 'https'
@@ -151,6 +160,7 @@ def test_parsed_url():
         ('http://g.cn', (http, host, 80, path)),
         ('http://g.cn:90', (http, host, 90, path)),
         ('http://g.cn:90/', (http, host, 90, path)),
+        #
         ('https://g.cn', (https, host, 443, path)),
         ('https://g.cn:233/', (https, host, 233, path)),
     ]
